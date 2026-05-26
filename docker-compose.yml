@@ -1,0 +1,38 @@
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: na-ogrodowej-app-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - na-ogrodowej-node-modules:/app/node_modules
+      - na-ogrodowej-next-cache:/app/.next
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    command: npm run dev
+
+  app-prod:
+    profiles:
+      - prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: na-ogrodowej-app-prod
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  na-ogrodowej-node-modules:
+  na-ogrodowej-next-cache:

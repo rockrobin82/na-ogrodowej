@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7faf4;
+  --foreground: #1a2e1a;
+  --leaf-50: #f0f7ec;
+  --leaf-100: #dcecd4;
+  --leaf-500: #5a9e4a;
+  --leaf-600: #3d7c32;
+  --leaf-700: #2f6127;
+  --soil-100: #f3efe8;
+  --soil-200: #e5ddd0;
+  --soil-400: #a89880;
+  --soil-600: #6b5d4d;
+  --soil-700: #524638;
+  --soil-800: #3d3429;
+  --soil-900: #2a231c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-leaf-50: var(--leaf-50);
+  --color-leaf-100: var(--leaf-100);
+  --color-leaf-500: var(--leaf-500);
+  --color-leaf-600: var(--leaf-600);
+  --color-leaf-700: var(--leaf-700);
+  --color-soil-100: var(--soil-100);
+  --color-soil-200: var(--soil-200);
+  --color-soil-400: var(--soil-400);
+  --color-soil-600: var(--soil-600);
+  --color-soil-700: var(--soil-700);
+  --color-soil-800: var(--soil-800);
+  --color-soil-900: var(--soil-900);
+  --font-sans: var(--font-dm-sans);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
 }
