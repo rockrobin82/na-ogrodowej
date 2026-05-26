@@ -73,7 +73,7 @@ function ApprovalForm({ pkg }: { pkg: SeedPackage }) {
     initialState
   );
   const contributor =
-    (pkg as SeedPackage & { profiles?: { full_name?: string; email?: string } })
+    (pkg as SeedPackage & { profiles?: { full_name?: string | null } })
       .profiles;
 
   return (
@@ -85,7 +85,7 @@ function ApprovalForm({ pkg }: { pkg: SeedPackage }) {
             {pkg.variety && ` — ${pkg.variety}`}
           </h3>
           <p className="text-sm text-soil-600">
-            {contributor?.full_name ?? contributor?.email} · Ilość:{" "}
+            {contributor?.full_name ?? "Użytkownik"} · Ilość:{" "}
             {pkg.quantity_total}
           </p>
           {pkg.description && (
@@ -152,7 +152,7 @@ export function OrdersList({
     id: string;
     status: string;
     created_at: string;
-    profiles?: { full_name?: string; email?: string };
+    profiles?: { full_name?: string | null };
     order_items?: Array<{
       quantity: number;
       seed_packages?: { plant_name: string; variety?: string | null };
@@ -170,7 +170,7 @@ export function OrdersList({
           <Card>
             <div className="flex flex-wrap justify-between gap-2">
               <p className="font-medium">
-                {order.profiles?.full_name ?? order.profiles?.email}
+                {order.profiles?.full_name ?? "Użytkownik"}
               </p>
               <Badge>{order.status}</Badge>
             </div>

@@ -79,7 +79,7 @@ export async function getAvailableSeeds() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("seed_packages")
-    .select("*, profiles(full_name, email)")
+    .select("*, profiles(full_name)")
     .eq("status", "approved")
     .gt("quantity_available", 0)
     .order("plant_name");

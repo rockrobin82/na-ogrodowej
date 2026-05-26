@@ -113,7 +113,7 @@ export async function getPendingPackages() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("seed_packages")
-    .select("*, profiles(full_name, email)")
+    .select("*, profiles(full_name)")
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
@@ -126,10 +126,35 @@ export async function getAllOrders() {
   const { data } = await supabase
     .from("orders")
     .select(
-      "*, profiles(full_name, email), order_items(*, seed_packages(plant_name, variety))"
+      "*, profiles(full_name), order_items(*, seed_packages(plant_name, variety))"
     )
     .order("created_at", { ascending: false })
     .limit(50);
 
   return data ?? [];
+}
+
+export async function getAdminDashboardStats() {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const [{ count: usersCount }, { count: pendingCount }, { data: latestUsers }] =
+    await Promise.all([
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase
+        .from("seed_packages")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("profiles")
+        .select("id, full_name, role, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+
+  return {
+    totalUsers: usersCount ?? 0,
+    pendingSeedSubmissions: pendingCount ?? 0,
+    latestUsers: latestUsers ?? [],
+  };
 }

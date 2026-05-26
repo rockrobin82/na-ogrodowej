@@ -4,19 +4,10 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Enums
-CREATE TYPE public.user_role AS ENUM ('user', 'admin');
 CREATE TYPE public.package_status AS ENUM ('pending', 'approved', 'rejected');
 CREATE TYPE public.order_status AS ENUM ('submitted', 'fulfilled', 'cancelled');
 
--- Profiles (extends auth.users)
-CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  full_name TEXT,
-  role public.user_role NOT NULL DEFAULT 'user',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+-- Profiles: see 20250524000000_profiles_role_system.sql
 
 -- Singleton app settings
 CREATE TABLE public.app_settings (
@@ -76,28 +67,6 @@ CREATE TABLE public.order_items (
 
 CREATE INDEX idx_order_items_package ON public.order_items(seed_package_id);
 
--- Auto-create profile on signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', '')
-  );
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
 -- Updated_at helper
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER
@@ -109,41 +78,18 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER profiles_updated_at BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER seed_packages_updated_at BEFORE UPDATE ON public.seed_packages
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER orders_updated_at BEFORE UPDATE ON public.orders
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- Admin check helper for RLS
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'
-  );
-$$;
+-- is_admin(): see 20250524000000_profiles_role_system.sql
 
 -- RLS
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.seed_packages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
-
--- Profiles policies
-CREATE POLICY "Users read own profile" ON public.profiles
-  FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users update own profile" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admins read all profiles" ON public.profiles
-  FOR SELECT USING (public.is_admin());
 
 -- App settings
 CREATE POLICY "Anyone authenticated reads settings" ON public.app_settings
