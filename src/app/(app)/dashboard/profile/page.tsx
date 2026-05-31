@@ -1,6 +1,10 @@
 import { ShippingForm } from "@/components/forms/shipping-form";
+import { getCurrentProfile } from "@/lib/auth";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const profile = await getCurrentProfile();
+  console.log(profile);
+
   return (
     <div className="space-y-6">
       <div>
@@ -13,7 +17,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <ShippingForm />
+      <ShippingForm profile={profile} />
     </div>
   );
 }

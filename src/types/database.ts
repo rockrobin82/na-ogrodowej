@@ -6,6 +6,12 @@ export interface Profile {
   id: string;
   full_name: string | null;
   role: UserRole;
+  address_line1: string | null;
+  postal_code: string | null;
+  city: string | null;
+  country: string | null;
+  phone: string | null;
+  shipping_notes: string | null;
   created_at: string;
 }
 
