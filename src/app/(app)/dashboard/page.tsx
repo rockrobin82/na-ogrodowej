@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { canUserOrder } from "@/lib/permissions";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getCurrentProfile, userHasApprovedPackage } from "@/lib/auth";
@@ -15,6 +16,13 @@ export default async function DashboardPage() {
     ? await userHasApprovedPackage(profile.id)
     : false;
   const dropOpen = isSeedDropOpen(settings);
+  
+  const orderPermission = profile
+  ? await canUserOrder(profile.id)
+  : {
+      allowed: false,
+      reason: "Brak użytkownika",
+    };
 
   const approvedCount = packages.filter((p) => p.status === "approved").length;
   const pendingCount = packages.filter((p) => p.status === "pending").length;
@@ -52,18 +60,27 @@ export default async function DashboardPage() {
           </p>
         </Card>
       </div>
-
-      {!hasApproved && (
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardHeader
-            title="Zacznij od wkładu"
-            description="Aby móc zamawiać nasiona innych, musisz mieć co najmniej jedną zatwierdzoną paczkę."
-          />
-          <Link href="/seeds/add">
-            <Button>Dodaj nasiona</Button>
-          </Link>
-        </Card>
-      )}
+      
+      <Card
+  className={
+    orderPermission.allowed
+      ? "border-green-200 bg-green-50"
+      : "border-amber-200 bg-amber-50"
+    }
+>
+  <CardHeader
+    title={
+      orderPermission.allowed
+        ? "Możesz zamawiać nasiona 🌱"
+        : "Wymagane działania"
+    }
+    description={
+      orderPermission.allowed
+        ? "Twoje konto spełnia warunki wymiany."
+        : orderPermission.reason ?? ""
+    }
+  />
+   </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -80,6 +97,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
         </Card>
+
         <Card>
           <CardHeader title="Ostatnie zamówienia" />
           {orders.length === 0 ? (
