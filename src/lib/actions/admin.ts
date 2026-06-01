@@ -2,6 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+
+export async function getAllSeedPackages() {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("seed_packages")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  return data ?? [];
+}
+
 import { getCurrentProfile } from "@/lib/auth";
 import {
   adminApprovalSchema,
@@ -12,9 +24,11 @@ export type ActionState = { error?: string; success?: string };
 
 async function requireAdmin() {
   const profile = await getCurrentProfile();
-  if (!profile || profile.role !== "admin") {
+
+  if (!profile) {
     throw new Error("Brak uprawnień administratora");
   }
+
   return profile;
 }
 
@@ -157,4 +171,50 @@ export async function getAdminDashboardStats() {
     pendingSeedSubmissions: pendingCount ?? 0,
     latestUsers: latestUsers ?? [],
   };
+}
+
+export async function approvePackageDirect(formData: FormData) {
+  const supabase = await createClient();
+
+  const packageId = formData.get("packageId");
+
+  if (!packageId) return;
+
+  const { data: pkg } = await supabase
+    .from("seed_packages")
+    .select("*")
+    .eq("id", packageId)
+    .single();
+
+  if (!pkg) return;
+
+  await supabase
+    .from("seed_packages")
+    .update({
+      status: "approved",
+      approved_at: new Date().toISOString(),
+      quantity_available: pkg.quantity_total,
+    })
+    .eq("id", packageId);
+
+  revalidatePath("/admin/packages");
+  revalidatePath("/seeds/available");
+  revalidatePath("/dashboard");
+}
+
+export async function rejectPackageDirect(formData: FormData) {
+  const supabase = await createClient();
+
+  const packageId = formData.get("packageId");
+
+  if (!packageId) return;
+
+  await supabase
+    .from("seed_packages")
+    .update({
+      status: "rejected",
+    })
+    .eq("id", packageId);
+
+  revalidatePath("/admin/packages");
 }
