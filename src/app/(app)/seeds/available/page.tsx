@@ -1,3 +1,4 @@
+import { canUserOrder } from "@/lib/permissions";
 import { AvailableSeedList } from "@/components/seeds/seed-list";
 import { getCurrentProfile, userHasApprovedPackage } from "@/lib/auth";
 import { getAppSettings, isSeedDropOpen } from "@/lib/settings";
@@ -7,10 +8,17 @@ export default async function AvailableSeedsPage() {
   const settings = await getAppSettings();
   const seeds = await getAvailableSeeds();
   const profile = await getCurrentProfile();
-  const hasApproved = profile
-    ? await userHasApprovedPackage(profile.id)
-    : false;
-  const canOrder = hasApproved && isSeedDropOpen(settings);
+
+  const orderPermission = profile
+  ? await canUserOrder(profile.id)
+  : {
+      allowed: false,
+      reason: "Brak użytkownika",
+    };
+
+const canOrder =
+  orderPermission.allowed &&
+  isSeedDropOpen(settings);
 
   return (
     <div className="space-y-6">
@@ -19,9 +27,9 @@ export default async function AvailableSeedsPage() {
         <p className="mt-1 text-soil-600">
           Tylko zatwierdzone paczki z dostępną ilością. Limit:{" "}
           {settings.max_quantity_per_seed_per_user} szt. na rodzaj.
-          {!hasApproved && (
+          {!orderPermission.allowed && (
             <span className="mt-1 block text-amber-700">
-              Dodaj i uzyskaj zatwierdzenie własnej paczki, aby móc zamawiać.
+              {orderPermission.reason}
             </span>
           )}
         </p>

@@ -26,20 +26,8 @@ export async function createSeedPackageAction(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Nieprawidłowe dane" };
   }
-
-  const settings = await getAppSettings();
+  
   const supabase = await createClient();
-
-  const { count } = await supabase
-    .from("seed_packages")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", profile.id);
-
-  if ((count ?? 0) >= settings.max_packages_per_user) {
-    return {
-      error: `Osiągnięto limit ${settings.max_packages_per_user} paczek na użytkownika`,
-    };
-  }
 
   const { error } = await supabase.from("seed_packages").insert({
     user_id: profile.id,
