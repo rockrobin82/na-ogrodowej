@@ -37,6 +37,9 @@ export async function canUserOrder(userId: string) {
     profile.city &&
     profile.phone;
 
+    console.log("PROFILE:", profile);
+    console.log("PROFILE COMPLETE:", profileComplete);
+
   if (!profileComplete) {
     return {
       allowed: false,
