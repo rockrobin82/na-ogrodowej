@@ -218,3 +218,29 @@ export async function rejectPackageDirect(formData: FormData) {
 
   revalidatePath("/admin/packages");
 }
+export async function deletePackageDirect(formData: FormData) {
+  await requireAdmin();
+
+  const supabase = await createClient();
+
+  const packageId = formData.get("packageId") as string;
+
+  if (!packageId) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("seed_packages")
+    .delete()
+    .eq("id", packageId);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  revalidatePath("/admin/packages");
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  revalidatePath("/seeds/available");
+}

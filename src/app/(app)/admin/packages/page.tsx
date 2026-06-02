@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import {
-        getAllSeedPackages,
-        approvePackageDirect,
-        rejectPackageDirect,
-      } from "@/lib/actions/admin";
+  getAllSeedPackages,
+  approvePackageDirect,
+  rejectPackageDirect,
+  deletePackageDirect,
+} from "@/lib/actions/admin";
 
 export default async function AdminPackagesPage() {
   const packages = await getAllSeedPackages();
@@ -52,12 +53,6 @@ export default async function AdminPackagesPage() {
                     value={pkg.id}
                   />
 
-                  <input
-                    type="hidden"
-                    name="status"
-                    value="approved"
-                  />
-
                   <button
                     className="rounded bg-green-600 px-3 py-2 text-sm text-white"
                   >
@@ -72,16 +67,24 @@ export default async function AdminPackagesPage() {
                     value={pkg.id}
                   />
 
-                  <input
-                    type="hidden"
-                    name="status"
-                    value="rejected"
-                  />
-
                   <button
                     className="rounded bg-red-600 px-3 py-2 text-sm text-white"
                   >
                     Odrzuć
+                  </button>
+                </form>
+
+                <form action={deletePackageDirect}>
+                  <input
+                    type="hidden"
+                    name="packageId"
+                    value={pkg.id}
+                  />
+
+                  <button
+                    className="rounded bg-black px-3 py-2 text-sm text-white"
+                  >
+                    Usuń
                   </button>
                 </form>
 
