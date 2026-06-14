@@ -1,157 +1,101 @@
-# Na-Ogrodowej
+# Na-Ogrodowej 🌱
 
-Bezpłatna wymiana nasion między ogrodnikami — MVP aplikacji full-stack.
+Community-driven seed exchange platform built with Next.js, TypeScript and Supabase.
 
-## Stack
+Users contribute seed packages, complete their shipping profile and participate in a fair exchange system managed by administrators.
 
-| Warstwa | Technologia |
-|---------|-------------|
-| Frontend + API | Next.js 15 (App Router, Server Actions) |
-| Język | TypeScript |
-| UI | Tailwind CSS 4 |
-| Baza + Auth | Supabase (PostgreSQL, RLS) |
-| Stan klienta | Zustand (koszyk) |
-| Kontenery | Docker Compose, multi-stage builds |
+---
 
-Szczegóły architektury: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+## Features
 
-## Funkcje MVP
+### User Features
 
-- Rejestracja i logowanie (Supabase Auth)
-- Dodawanie paczek nasion (limit konfigurowalny)
-- Zatwierdzanie paczek przez admina po dostarczeniu
-- Lista dostępnych nasion (tylko zatwierdzone, ilość > 0)
-- Koszyk i składanie zamówień
-- Panel administratora (ustawienia, zatwierdzenia, zamówienia)
-- Godzina „dropu” nasion i limity ilości
+- User registration and authentication
+- Shipping profile management
+- Add seed packages for exchange
+- Browse available seeds
+- Shopping cart
+- Place seed exchange orders
+- Order history
+- Exchange eligibility validation
 
-## Wymagania
+### Admin Features
 
-- Node.js 22+
-- Konto [Supabase](https://supabase.com)
-- Docker & Docker Compose (opcjonalnie, do dev w kontenerze)
+- Admin dashboard
+- Approve or reject submitted seed packages
+- Delete packages
+- Manage users
+- Configure exchange settings
+- Review orders
 
-## Szybki start
+---
 
-### 1. Supabase
+## Exchange Rules
 
-1. Utwórz projekt na [supabase.com](https://supabase.com).
-2. W **SQL Editor** uruchom migrację z pliku:
-   `supabase/migrations/20250525000000_initial_schema.sql`
-3. W **Authentication → Providers** włącz Email.
-4. Skopiuj URL i klucze z **Settings → API**.
+To participate in seed exchange a user must:
 
-### 2. Zmienne środowiskowe
+- Complete shipping information
+- Submit at least one seed package
+- Have at least one approved package
+- Have an active account
+- Order during available exchange hours
 
-```bash
-cp .env.example .env.local
-```
+---
 
-Uzupełnij:
+## Tech Stack
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...   # opcjonalnie, tylko po stronie serwera
-```
+- Next.js 15
+- TypeScript
+- Tailwind CSS
+- Supabase
+- Zustand
+- Zod
 
-### 3. Uruchomienie lokalne (bez Dockera)
+---
 
-```bash
-npm install
-npm run dev
-```
+## Screenshots
 
-Aplikacja: [http://localhost:3000](http://localhost:3000)
+### User Dashboard
 
-### 4. Docker Compose (dev)
+![Dashboard](./screenshots/dashboard.png)
 
-```bash
-cp .env.example .env.local
-# uzupełnij .env.local
+### Add Seed Package
 
-docker compose up --build
-```
+![Add Seeds](./screenshots/add_seeds.png)
 
-| Kontener | Nazwa | Port |
-|----------|-------|------|
-| Dev app | `na-ogrodowej-app-dev` | 3000 |
+### Available Seeds
 
-Wolumeny:
+![Available Seeds](./screenshots/available_seeds.png)
 
-- `na-ogrodowej-node-modules` — `node_modules`
-- `na-ogrodowej-next-cache` — cache `.next`
+### Shopping Cart
 
-### 5. Produkcja w Dockerze
+![Cart](./screenshots/chart.png)
 
-```bash
-docker compose --profile prod up --build
-```
+### Admin Dashboard
 
-Kontener: `na-ogrodowej-app-prod`
+![Admin Dashboard](./screenshots/dashboard-admin.png)
 
-## Pierwszy administrator
+---
 
-Po rejestracji użytkownika w Supabase SQL Editor:
+## Project Structure
 
-```sql
-UPDATE public.profiles
-SET role = 'admin'
-WHERE email = 'twoj@email.pl';
-```
-
-## Strony
-
-| Ścieżka | Opis |
-|---------|------|
-| `/` | Strona główna |
-| `/login` | Logowanie |
-| `/register` | Rejestracja |
-| `/dashboard` | Panel użytkownika |
-| `/seeds/add` | Dodawanie nasion |
-| `/seeds/available` | Dostępne nasiona |
-| `/cart` | Koszyk |
-| `/admin` | Panel admina |
-
-## Reguły biznesowe
-
-1. Zamówienia wymagają co najmniej **jednej zatwierdzonej** paczki użytkownika.
-2. Widoczne są tylko paczki `approved` z `quantity_available > 0`.
-3. Limit paczek na użytkownika — `app_settings.max_packages_per_user`.
-4. Limit sztuk na rodzaj nasion — `max_quantity_per_seed_per_user`.
-5. Zamówienia możliwe od godziny `seed_drop_hour` (domyślnie 18:00).
-6. Admin ręcznie zatwierdza lub odrzuca dostarczone paczki.
-
-## Schemat bazy
-
-Tabele: `profiles`, `app_settings`, `seed_packages`, `orders`, `order_items`
-
-Enumy: `user_role`, `package_status`, `order_status`
-
-RLS włączone na wszystkich tabelach — szczegóły w migracji SQL.
-
-## Struktura projektu
-
-```
 src/
-├── app/           # Strony (App Router)
-├── components/    # UI i formularze
-├── lib/           # Supabase, actions, walidacja
-├── stores/        # Zustand
-└── types/         # Typy TypeScript
-supabase/migrations/
-docs/ARCHITECTURE.md
-```
+├── app/
+├── components/
+├── lib/
+├── stores/
+├── types/
+└── middleware.ts
 
-## Skrypty
+---
+
+## Installation
 
 ```bash
-npm run dev      # serwer deweloperski
-npm run build    # build produkcyjny
-npm run start    # start po buildzie
-npm run lint     # ESLint
-```
+git clone https://github.com/USERNAME/wymiana-na-ogrodowej.git
 
-## Licencja
+cd wymiana-na-ogrodowej
 
-Prywatny projekt MVP — do użytku społeczności Na-Ogrodowej.
+npm install
+
+npm run dev
