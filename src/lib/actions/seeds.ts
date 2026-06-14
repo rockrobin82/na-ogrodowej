@@ -26,20 +26,8 @@ export async function createSeedPackageAction(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Nieprawidłowe dane" };
   }
-
-  const settings = await getAppSettings();
+  
   const supabase = await createClient();
-
-  const { count } = await supabase
-    .from("seed_packages")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", profile.id);
-
-  if ((count ?? 0) >= settings.max_packages_per_user) {
-    return {
-      error: `Osiągnięto limit ${settings.max_packages_per_user} paczek na użytkownika`,
-    };
-  }
 
   const { error } = await supabase.from("seed_packages").insert({
     user_id: profile.id,
@@ -77,12 +65,18 @@ export async function getMySeedPackages() {
 
 export async function getAvailableSeeds() {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("seed_packages")
-    .select("*, profiles(full_name, email)")
+    .select(`
+      *,
+      profiles!seed_packages_user_id_fkey(full_name)
+    `)
     .eq("status", "approved")
     .gt("quantity_available", 0)
     .order("plant_name");
+
+    console.log("AVAILABLE SEEDS:", data);
+    console.log("AVAILABLE SEEDS ERROR:", error);
 
   return data ?? [];
 }

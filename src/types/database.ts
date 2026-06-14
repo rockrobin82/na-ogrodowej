@@ -4,11 +4,15 @@ export type OrderStatus = "submitted" | "fulfilled" | "cancelled";
 
 export interface Profile {
   id: string;
-  email: string;
   full_name: string | null;
   role: UserRole;
+  address_line1: string | null;
+  postal_code: string | null;
+  city: string | null;
+  country: string | null;
+  phone: string | null;
+  shipping_notes: string | null;
   created_at: string;
-  updated_at: string;
 }
 
 export interface AppSettings {
@@ -35,7 +39,7 @@ export interface SeedPackage {
   admin_notes: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, "full_name" | "email">;
+  profiles?: Pick<Profile, "full_name">;
 }
 
 export interface Order {
