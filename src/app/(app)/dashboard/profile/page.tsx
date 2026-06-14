@@ -3,7 +3,6 @@ import { getCurrentProfile } from "@/lib/auth";
 
 export default async function ProfilePage() {
   const profile = await getCurrentProfile();
-  console.log(profile);
 
   return (
     <div className="space-y-6">

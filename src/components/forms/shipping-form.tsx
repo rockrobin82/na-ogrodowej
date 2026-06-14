@@ -7,15 +7,8 @@ import { useRouter } from "next/navigation";
 
 export function ShippingForm({
   profile,
-}: {
-  profile: {
-    full_name?: string;
-    address_line1?: string;
-    postal_code?: string;
-    city?: string;
-    phone?: string;
-  };
-}) {
+}: any) {
+  
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
