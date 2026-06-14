@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { updateShippingData } from "@/lib/actions/profile";
 import { useRouter } from "next/navigation";
+import type { Profile } from "@/types/database";
 
 
 export function ShippingForm({
   profile,
-}: any) {
-  
+}: {
+  profile: Profile;
+}) {
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
