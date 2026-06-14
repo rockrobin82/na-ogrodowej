@@ -1,10 +1,13 @@
 import { CartView } from "@/components/cart/cart-view";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, userHasApprovedPackage } from "@/lib/auth";
 import { getAppSettings, isSeedDropOpen } from "@/lib/settings";
 
 export default async function CartPage() {
   const settings = await getAppSettings();
   const profile = await getCurrentProfile();
+  const hasApproved = profile
+    ? await userHasApprovedPackage(profile.id)
+    : false;
 
   return (
     <div className="space-y-6">
