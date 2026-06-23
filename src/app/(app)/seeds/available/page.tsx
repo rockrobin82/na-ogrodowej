@@ -1,6 +1,6 @@
 import { canUserOrder } from "@/lib/permissions";
 import { AvailableSeedList } from "@/components/seeds/seed-list";
-import { getCurrentProfile, userHasApprovedPackage } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/auth";
 import { getAppSettings, isSeedDropOpen } from "@/lib/settings";
 import { getAvailableSeeds } from "@/lib/actions/seeds";
 

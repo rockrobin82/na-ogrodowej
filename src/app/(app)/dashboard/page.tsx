@@ -2,7 +2,8 @@ import Link from "next/link";
 import { canUserOrder } from "@/lib/permissions";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getCurrentProfile, userHasApprovedPackage } from "@/lib/auth";
+import { OrderHistory } from "@/components/orders/order-history";
+import { getCurrentProfile } from "@/lib/auth";
 import { getAppSettings, isSeedDropOpen } from "@/lib/settings";
 import { getMySeedPackages } from "@/lib/actions/seeds";
 import { getMyOrders } from "@/lib/actions/orders";
@@ -12,9 +13,6 @@ export default async function DashboardPage() {
   const settings = await getAppSettings();
   const packages = await getMySeedPackages();
   const orders = await getMyOrders();
-  const hasApproved = profile
-    ? await userHasApprovedPackage(profile.id)
-    : false;
   const dropOpen = isSeedDropOpen(settings);
   
   const orderPermission = profile
@@ -99,19 +97,8 @@ export default async function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Ostatnie zamówienia" />
-          {orders.length === 0 ? (
-            <p className="text-sm text-soil-600">Brak zamówień.</p>
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {orders.slice(0, 3).map((order) => (
-                <li key={order.id} className="text-soil-700">
-                  {new Date(order.created_at).toLocaleDateString("pl-PL")} —{" "}
-                  {order.status}
-                </li>
-              ))}
-            </ul>
-          )}
+          <CardHeader title="Historia zamówień" />
+          <OrderHistory orders={orders} />
         </Card>
       </div>
     </div>

@@ -19,6 +19,7 @@ import {
   adminApprovalSchema,
   adminSettingsSchema,
 } from "@/lib/validators/schemas";
+import { error } from "console";
 
 export type ActionState = { error?: string; success?: string };
 
@@ -130,6 +131,9 @@ export async function getPendingPackages() {
     .select("*, profiles(full_name)")
     .eq("status", "pending")
     .order("created_at", { ascending: true });
+
+    console.log("PENDING:", data);
+    console.log(" ERROR:", error);
 
   return data ?? [];
 }

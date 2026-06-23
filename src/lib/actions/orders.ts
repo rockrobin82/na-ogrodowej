@@ -59,7 +59,8 @@ export async function submitOrderAction(
     const { data: userOrders } = await supabase
       .from("orders")
       .select("id")
-      .eq("user_id", profile.id);
+      .eq("user_id", profile.id)
+      .neq("status", "cancelled");
 
     const orderIds = userOrders?.map((o) => o.id) ?? [];
     let alreadyOrdered = 0;
@@ -128,6 +129,30 @@ export async function submitOrderAction(
   revalidatePath("/cart");
   revalidatePath("/dashboard");
   return { success: "Zamówienie zostało złożone" };
+}
+
+export async function cancelOrderAction(orderId: string): Promise<ActionState> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { error: "Musisz być zalogowany" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_order", {
+    p_order_id: orderId,
+  });
+
+  if (error) {
+    return {
+      error:
+        error.message === "Order can only be cancelled while submitted"
+          ? "Można anulować tylko zamówienia oczekujące"
+          : "Nie udało się anulować zamówienia",
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/admin");
+  revalidatePath("/seeds/available");
+  return { success: "Zamówienie zostało anulowane" };
 }
 
 export async function getMyOrders() {
