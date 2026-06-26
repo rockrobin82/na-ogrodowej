@@ -125,15 +125,18 @@ export async function updateSettingsAction(
 
 export async function getPendingPackages() {
   await requireAdmin();
+
   const supabase = await createClient();
-  const { data } = await supabase
+
+  const { data, error } = await supabase
     .from("seed_packages")
-    .select("*, profiles(full_name)")
+    .select("*, profiles!seed_packages_user_id_fkey(full_name)")
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
-    console.log("PENDING:", data);
-    console.log(" ERROR:", error);
+  if (error) {
+    throw error;
+  }
 
   return data ?? [];
 }
