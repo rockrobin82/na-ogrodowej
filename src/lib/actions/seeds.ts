@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
-import { getAppSettings } from "@/lib/settings";
 import { seedPackageSchema } from "@/lib/validators/schemas";
 
 export type ActionState = { error?: string; success?: string };

@@ -9,9 +9,18 @@ import {
   updateSettingsAction,
   type ActionState,
 } from "@/lib/actions/admin";
-import type { AppSettings, SeedPackage } from "@/types/database";
+import type { AppSettings, OrderStatus, SeedPackage } from "@/types/database";
 
 const initialState: ActionState = {};
+
+const orderStatusBadge: Record<
+  OrderStatus,
+  { label: string; variant: "default" | "success" | "warning" | "danger" }
+> = {
+  submitted: { label: "submitted", variant: "warning" },
+  fulfilled: { label: "fulfilled", variant: "success" },
+  cancelled: { label: "cancelled", variant: "danger" },
+};
 
 export function SettingsForm({ settings }: { settings: AppSettings }) {
   const [state, action, pending] = useActionState(
@@ -150,7 +159,7 @@ export function OrdersList({
 }: {
   orders: Array<{
     id: string;
-    status: string;
+    status: OrderStatus;
     created_at: string;
     profiles?: { full_name?: string | null };
     order_items?: Array<{
@@ -172,7 +181,9 @@ export function OrdersList({
               <p className="font-medium">
                 {order.profiles?.full_name ?? "Użytkownik"}
               </p>
-              <Badge>{order.status}</Badge>
+              <Badge variant={orderStatusBadge[order.status].variant}>
+                {orderStatusBadge[order.status].label}
+              </Badge>
             </div>
             <p className="text-xs text-soil-500">
               {new Date(order.created_at).toLocaleString("pl-PL")}
