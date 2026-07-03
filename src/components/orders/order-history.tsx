@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Badge } from "@/components/ui/card";
+import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { cancelOrderAction } from "@/lib/actions/orders";
 import type { OrderStatus } from "@/types/database";
@@ -19,15 +19,6 @@ type OrderHistoryOrder = {
       variety?: string | null;
     } | null;
   }>;
-};
-
-const statusBadge: Record<
-  OrderStatus,
-  { label: string; variant: "default" | "success" | "warning" | "danger" }
-> = {
-  submitted: { label: "submitted", variant: "warning" },
-  fulfilled: { label: "fulfilled", variant: "success" },
-  cancelled: { label: "cancelled", variant: "danger" },
 };
 
 export function OrderHistory({ orders }: { orders: OrderHistoryOrder[] }) {
@@ -78,7 +69,6 @@ export function OrderHistory({ orders }: { orders: OrderHistoryOrder[] }) {
 
       <ul className="space-y-3">
         {orders.map((order) => {
-          const badge = statusBadge[order.status];
           const cancelPending = isPending && pendingOrderId === order.id;
 
           return (
@@ -92,7 +82,7 @@ export function OrderHistory({ orders }: { orders: OrderHistoryOrder[] }) {
                     <p className="font-medium text-soil-900">
                       {new Date(order.created_at).toLocaleDateString("pl-PL")}
                     </p>
-                    <Badge variant={badge.variant}>{badge.label}</Badge>
+                    <OrderStatusBadge status={order.status} />
                   </div>
                   <ul className="mt-2 space-y-1 text-sm text-soil-700">
                     {order.order_items?.map((item, index) => (

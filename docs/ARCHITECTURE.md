@@ -125,7 +125,7 @@ erDiagram
 
 - `user_role`: `user`, `admin`
 - `package_status`: `pending`, `approved`, `rejected`
-- `order_status`: `submitted`, `fulfilled`, `cancelled`
+- `order_status`: `submitted`, `approved`, `packed`, `shipped`, `cancelled`
 
 ### Business rules (enforced in app + RLS where possible)
 

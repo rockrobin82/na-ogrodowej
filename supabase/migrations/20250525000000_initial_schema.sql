@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Enums
 CREATE TYPE public.package_status AS ENUM ('pending', 'approved', 'rejected');
-CREATE TYPE public.order_status AS ENUM ('submitted', 'fulfilled', 'cancelled');
+CREATE TYPE public.order_status AS ENUM ('submitted', 'approved', 'packed', 'shipped', 'cancelled');
 
 -- Profiles: see 20250524000000_profiles_role_system.sql
 

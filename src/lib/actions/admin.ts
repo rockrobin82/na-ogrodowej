@@ -2,6 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth";
+import {
+  adminApprovalSchema,
+  adminOrderStatusSchema,
+  adminSettingsSchema,
+} from "@/lib/validators/schemas";
 
 export async function getAllSeedPackages() {
   const supabase = await createClient();
@@ -14,19 +20,12 @@ export async function getAllSeedPackages() {
   return data ?? [];
 }
 
-import { getCurrentProfile } from "@/lib/auth";
-import {
-  adminApprovalSchema,
-  adminSettingsSchema,
-} from "@/lib/validators/schemas";
-import { error } from "console";
-
 export type ActionState = { error?: string; success?: string };
 
 async function requireAdmin() {
   const profile = await getCurrentProfile();
 
-  if (!profile) {
+  if (!profile || profile.role !== "admin") {
     throw new Error("Brak uprawnień administratora");
   }
 
@@ -118,6 +117,41 @@ export async function updateSettingsAction(
 
     revalidatePath("/admin");
     return { success: "Ustawienia zostały zapisane" };
+  } catch {
+    return { error: "Brak uprawnień" };
+  }
+}
+
+export async function updateOrderStatusAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    await requireAdmin();
+    const parsed = adminOrderStatusSchema.safeParse({
+      orderId: formData.get("orderId"),
+      status: formData.get("status"),
+    });
+
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0]?.message ?? "Nieprawidłowe dane" };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("update_order_status", {
+      p_order_id: parsed.data.orderId,
+      p_status: parsed.data.status,
+    });
+
+    if (error) {
+      console.error(JSON.stringify(error, null, 2));
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/dashboard");
+    revalidatePath("/seeds/available");
+    return { success: "Status zamówienia został zaktualizowany" };
   } catch {
     return { error: "Brak uprawnień" };
   }
