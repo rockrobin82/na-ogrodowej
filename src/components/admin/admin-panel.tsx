@@ -4,8 +4,10 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
+import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import {
   approvePackageAction,
+  updateOrderStatusAction,
   updateSettingsAction,
   type ActionState,
 } from "@/lib/actions/admin";
@@ -13,13 +15,12 @@ import type { AppSettings, OrderStatus, SeedPackage } from "@/types/database";
 
 const initialState: ActionState = {};
 
-const orderStatusBadge: Record<
-  OrderStatus,
-  { label: string; variant: "default" | "success" | "warning" | "danger" }
+const nextOrderStatus: Partial<
+  Record<OrderStatus, { status: OrderStatus; label: string }>
 > = {
-  submitted: { label: "submitted", variant: "warning" },
-  fulfilled: { label: "fulfilled", variant: "success" },
-  cancelled: { label: "cancelled", variant: "danger" },
+  submitted: { status: "approved", label: "Zatwierdź" },
+  approved: { status: "packed", label: "Oznacz jako spakowane" },
+  packed: { status: "shipped", label: "Oznacz jako wysłane" },
 };
 
 export function SettingsForm({ settings }: { settings: AppSettings }) {
@@ -181,9 +182,7 @@ export function OrdersList({
               <p className="font-medium">
                 {order.profiles?.full_name ?? "Użytkownik"}
               </p>
-              <Badge variant={orderStatusBadge[order.status].variant}>
-                {orderStatusBadge[order.status].label}
-              </Badge>
+              <OrderStatusBadge status={order.status} />
             </div>
             <p className="text-xs text-soil-500">
               {new Date(order.created_at).toLocaleString("pl-PL")}
@@ -198,9 +197,62 @@ export function OrdersList({
                 </li>
               ))}
             </ul>
+            <OrderWorkflowForm orderId={order.id} status={order.status} />
           </Card>
         </li>
       ))}
     </ul>
+  );
+}
+
+function OrderWorkflowForm({
+  orderId,
+  status,
+}: {
+  orderId: string;
+  status: OrderStatus;
+}) {
+  const [state, action, pending] = useActionState(
+    updateOrderStatusAction,
+    initialState
+  );
+  const next = nextOrderStatus[status];
+  const canCancel = status !== "cancelled" && status !== "shipped";
+
+  if (!next && !canCancel) {
+    return null;
+  }
+
+  return (
+    <form action={action} className="mt-4 flex flex-wrap items-center gap-2">
+      <input type="hidden" name="orderId" value={orderId} />
+      {state.error && (
+        <p className="w-full text-sm text-red-600">{state.error}</p>
+      )}
+      {state.success && (
+        <p className="w-full text-sm text-leaf-700">{state.success}</p>
+      )}
+      {next && (
+        <Button
+          type="submit"
+          name="status"
+          value={next.status}
+          disabled={pending}
+        >
+          {next.label}
+        </Button>
+      )}
+      {canCancel && (
+        <Button
+          type="submit"
+          name="status"
+          value="cancelled"
+          variant="danger"
+          disabled={pending}
+        >
+          Anuluj zamówienie
+        </Button>
+      )}
+    </form>
   );
 }

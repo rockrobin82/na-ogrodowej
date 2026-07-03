@@ -31,6 +31,11 @@ export const adminApprovalSchema = z.object({
   adminNotes: z.string().optional(),
 });
 
+export const adminOrderStatusSchema = z.object({
+  orderId: z.string().uuid(),
+  status: z.enum(["approved", "packed", "shipped", "cancelled"]),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type SeedPackageInput = z.infer<typeof seedPackageSchema>;

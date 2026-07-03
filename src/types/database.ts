@@ -1,6 +1,11 @@
 export type UserRole = "user" | "admin";
 export type PackageStatus = "pending" | "approved" | "rejected";
-export type OrderStatus = "submitted" | "fulfilled" | "cancelled";
+export type OrderStatus =
+  | "submitted"
+  | "approved"
+  | "packed"
+  | "shipped"
+  | "cancelled";
 
 export interface Profile {
   id: string;
