@@ -33,7 +33,8 @@ export const adminApprovalSchema = z.object({
 
 export const adminOrderStatusSchema = z.object({
   orderId: z.string().uuid(),
-  status: z.enum(["approved", "packed", "shipped", "cancelled"]),
+  status: z.enum(["submitted", "approved", "packed", "shipped", "cancelled"]),
+  trackingNumber: z.string().optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

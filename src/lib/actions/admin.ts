@@ -131,6 +131,7 @@ export async function updateOrderStatusAction(
     const parsed = adminOrderStatusSchema.safeParse({
       orderId: formData.get("orderId"),
       status: formData.get("status"),
+      trackingNumber: formData.get("trackingNumber"),
     });
 
     if (!parsed.success) {
@@ -141,6 +142,7 @@ export async function updateOrderStatusAction(
     const { error } = await supabase.rpc("update_order_status", {
       p_order_id: parsed.data.orderId,
       p_status: parsed.data.status,
+      p_tracking_number: parsed.data.trackingNumber || null,
     });
 
     if (error) {
