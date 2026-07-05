@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, Badge } from "@/components/ui/card";
-import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { OrderStatusTimeline } from "@/components/admin/order-status-timeline";
 import {
   approvePackageAction,
   updateOrderStatusAction,
@@ -15,12 +15,20 @@ import type { AppSettings, OrderStatus, SeedPackage } from "@/types/database";
 
 const initialState: ActionState = {};
 
-const nextOrderStatus: Partial<
-  Record<OrderStatus, { status: OrderStatus; label: string }>
-> = {
-  submitted: { status: "approved", label: "Zatwierdź" },
-  approved: { status: "packed", label: "Oznacz jako spakowane" },
-  packed: { status: "shipped", label: "Oznacz jako wysłane" },
+const orderStatuses: OrderStatus[] = [
+  "submitted",
+  "approved",
+  "packed",
+  "shipped",
+  "cancelled",
+];
+
+const orderStatusLabels: Record<OrderStatus, string> = {
+  submitted: "Złożone",
+  approved: "Zatwierdzone",
+  packed: "Spakowane",
+  shipped: "Wysłane",
+  cancelled: "Anulowane",
 };
 
 export function SettingsForm({ settings }: { settings: AppSettings }) {
@@ -162,6 +170,10 @@ export function OrdersList({
     id: string;
     status: OrderStatus;
     created_at: string;
+    approved_at?: string | null;
+    packed_at?: string | null;
+    shipped_at?: string | null;
+    tracking_number?: string | null;
     profiles?: { full_name?: string | null };
     order_items?: Array<{
       quantity: number;
@@ -178,26 +190,37 @@ export function OrdersList({
       {orders.map((order) => (
         <li key={order.id}>
           <Card>
-            <div className="flex flex-wrap justify-between gap-2">
-              <p className="font-medium">
-                {order.profiles?.full_name ?? "Użytkownik"}
-              </p>
-              <OrderStatusBadge status={order.status} />
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 lg:w-[55%]">
+                <p className="font-medium leading-tight text-soil-900">
+                  {order.profiles?.full_name ?? "Użytkownik"}
+                </p>
+                <p className="mt-1 text-xs leading-tight text-soil-500">
+                  {new Date(order.created_at).toLocaleString("pl-PL")}
+                </p>
+                <ul className="mt-1.5 space-y-0.5 text-sm leading-snug text-soil-700">
+                  {order.order_items?.map((item, i) => (
+                    <li key={i}>
+                      {item.seed_packages?.plant_name}
+                      {item.seed_packages?.variety &&
+                        ` (${item.seed_packages.variety})`}{" "}
+                      × {item.quantity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="min-w-0 lg:flex lg:w-[45%] lg:justify-end">
+                <OrderStatusTimeline
+                  status={order.status}
+                  created_at={order.created_at}
+                  approved_at={order.approved_at}
+                  packed_at={order.packed_at}
+                  shipped_at={order.shipped_at}
+                />
+              </div>
             </div>
-            <p className="text-xs text-soil-500">
-              {new Date(order.created_at).toLocaleString("pl-PL")}
-            </p>
-            <ul className="mt-2 text-sm text-soil-700">
-              {order.order_items?.map((item, i) => (
-                <li key={i}>
-                  {item.seed_packages?.plant_name}
-                  {item.seed_packages?.variety &&
-                    ` (${item.seed_packages.variety})`}{" "}
-                  × {item.quantity}
-                </li>
-              ))}
-            </ul>
-            <OrderWorkflowForm orderId={order.id} status={order.status} />
+            <OrderWorkflowForm order={order} />
           </Card>
         </li>
       ))}
@@ -205,54 +228,79 @@ export function OrdersList({
   );
 }
 
-function OrderWorkflowForm({
-  orderId,
-  status,
-}: {
-  orderId: string;
-  status: OrderStatus;
-}) {
+type AdminOrder = Parameters<typeof OrdersList>[0]["orders"][number];
+
+function OrderWorkflowForm({ order }: { order: AdminOrder }) {
   const [state, action, pending] = useActionState(
     updateOrderStatusAction,
     initialState
   );
-  const next = nextOrderStatus[status];
-  const canCancel = status !== "cancelled" && status !== "shipped";
-
-  if (!next && !canCancel) {
-    return null;
-  }
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(
+    order.status
+  );
 
   return (
-    <form action={action} className="mt-4 flex flex-wrap items-center gap-2">
-      <input type="hidden" name="orderId" value={orderId} />
+    <form
+      action={action}
+      className="mt-4 space-y-3 border-t border-soil-100 pt-4"
+    >
+      <input type="hidden" name="orderId" value={order.id} />
       {state.error && (
         <p className="w-full text-sm text-red-600">{state.error}</p>
       )}
       {state.success && (
         <p className="w-full text-sm text-leaf-700">{state.success}</p>
       )}
-      {next && (
+
+      <div
+        className={`grid items-end gap-4 ${
+          selectedStatus === "shipped"
+            ? "sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+            : "sm:grid-cols-[minmax(0,1fr)_auto]"
+        }`}
+      >
+        <div className="min-w-0 space-y-1.5">
+          <label
+            htmlFor={`order-status-${order.id}`}
+            className="block text-sm font-medium text-soil-800"
+          >
+            Status zamówienia
+          </label>
+          <select
+            id={`order-status-${order.id}`}
+            name="status"
+            value={selectedStatus}
+            onChange={(event) =>
+              setSelectedStatus(event.target.value as OrderStatus)
+            }
+            className="w-full rounded-lg border border-soil-200 bg-white px-3 py-2.5 text-sm text-soil-900 shadow-sm focus:border-leaf-500 focus:outline-none focus:ring-2 focus:ring-leaf-500/20"
+          >
+            {orderStatuses.map((status) => (
+              <option key={status} value={status}>
+                {orderStatusLabels[status]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedStatus === "shipped" && (
+          <div className="min-w-0">
+            <Input
+              label="Numer śledzenia"
+              name="trackingNumber"
+              defaultValue={order.tracking_number ?? ""}
+              placeholder="np. RR123456789PL"
+            />
+          </div>
+        )}
         <Button
           type="submit"
-          name="status"
-          value={next.status}
           disabled={pending}
+          className="w-full sm:w-auto sm:justify-self-end"
         >
-          {next.label}
+          {pending ? "Zapisywanie..." : "Zapisz"}
         </Button>
-      )}
-      {canCancel && (
-        <Button
-          type="submit"
-          name="status"
-          value="cancelled"
-          variant="danger"
-          disabled={pending}
-        >
-          Anuluj zamówienie
-        </Button>
-      )}
+      </div>
     </form>
   );
 }

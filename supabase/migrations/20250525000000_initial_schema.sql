@@ -49,6 +49,10 @@ CREATE TABLE public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   status public.order_status NOT NULL DEFAULT 'submitted',
+  approved_at TIMESTAMPTZ,
+  packed_at TIMESTAMPTZ,
+  shipped_at TIMESTAMPTZ,
+  tracking_number TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -52,6 +52,10 @@ export interface Order {
   user_id: string;
   status: OrderStatus;
   created_at: string;
+  approved_at: string | null;
+  packed_at: string | null;
+  shipped_at: string | null;
+  tracking_number: string | null;
   updated_at: string;
 }
 
